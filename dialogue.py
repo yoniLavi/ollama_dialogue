@@ -1,31 +1,29 @@
 import ollama
-import time
 
 def generate_dialogue(model='llama3.1', rounds=5):
-    messages = [
+    emma_messages = [
         {'role': 'system', 'content': 'You are Emma, a passionate and emotional artist. You speak poetically and dramatically. You are currently upset with your partner, James, for forgetting your anniversary.'},
-        {'role': 'user', 'content': 'James, how could you forget our anniversary? Start the dialogue.'},
+        {'role': 'user', 'content': 'James, how could you forget our anniversary? Start the dialogue.'}
+    ]
+    
+    james_messages = [
+        {'role': 'system', 'content': 'You are James, a logical and pragmatic software engineer. You speak calmly and rationally. You forgot your anniversary with Emma and are trying to explain yourself.'}
     ]
 
     for _ in range(rounds):
         # Emma's turn
-        response = ollama.chat(model=model, messages=messages)
-        emma_response = response['message']['content']
-        print("Emma:", emma_response)
-        messages.append({'role': 'assistant', 'content': emma_response})
+        emma_response = ollama.chat(model=model, messages=emma_messages)
+        emma_reply = emma_response['message']['content']
+        print("Emma:", emma_reply)
+        emma_messages.append({'role': 'assistant', 'content': emma_reply})
+        james_messages.append({'role': 'user', 'content': emma_reply})
 
         # James's turn
-        messages.append({'role': 'system', 'content': 'You are James, a logical and pragmatic software engineer. You speak calmly and rationally. You forgot your anniversary with Emma and are trying to explain yourself.'})
-        messages.append({'role': 'user', 'content': 'Respond to Emma\'s last statement.'})
-        
-        response = ollama.chat(model=model, messages=messages)
-        james_response = response['message']['content']
-        print("James:", james_response)
-        messages.append({'role': 'assistant', 'content': james_response})
-
-        # Reset system message for Emma
-        messages.append({'role': 'system', 'content': 'You are Emma, a passionate and emotional artist. You speak poetically and dramatically. You are currently upset with your partner, James, for forgetting your anniversary.'})
-        messages.append({'role': 'user', 'content': 'Respond to James\'s last statement.'})
+        james_response = ollama.chat(model=model, messages=james_messages)
+        james_reply = james_response['message']['content']
+        print("James:", james_reply)
+        james_messages.append({'role': 'assistant', 'content': james_reply})
+        emma_messages.append({'role': 'user', 'content': james_reply})
 
 if __name__ == "__main__":
     print("Generating dialogue between Emma and James...")
