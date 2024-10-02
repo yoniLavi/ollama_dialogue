@@ -17,12 +17,12 @@ def generate_dialogue(rounds, model='llama3.2:3b'):
     ]
 
     for _ in range(rounds):
-        reply_from_james = ollama_response(model, emma_messages)
+        reply_from_james = ollama_response(emma_messages, model)
         james_messages.append({'role': 'user', 'content': reply_from_james})
         emma_messages.append({'role': 'assistant', 'content': reply_from_james})
         print("Emma:", reply_from_james)
 
-        reply_from_emma = ollama_response(model, james_messages)
+        reply_from_emma = ollama_response(james_messages, model)
         emma_messages.append({'role': 'user', 'content': reply_from_emma})
         james_messages.append({'role': 'assistant', 'content': reply_from_emma})
         print("James:", reply_from_emma)
