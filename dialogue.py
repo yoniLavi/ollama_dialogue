@@ -27,6 +27,11 @@ class Character:
     def speak_line(self, line: str):
         print(f"{' '*5}{self.name}:\n{line}\n")
 
+    def add_and_speak_line(self, line: str):
+        self.messages.append({"role": "assistant", "content": line})
+        self.speak_line(line)
+        return line
+
 
 def ollama_response(messages: list[dict[str, str]]) -> str:
     return ollama.chat(model=MODEL, messages=messages)["message"]["content"]  # type: ignore
@@ -37,10 +42,11 @@ class Dialogue:
         self.character1 = character1
         self.character2 = character2
 
+    def start_dialogue(self, first_line: str):
+        return self.character1.add_and_speak_line(first_line)
+
     def generate(self, rounds: int):
-        first_line = "Hi honey, seems that we're both free tonight, what would you like to do?"
-        self.character1.speak_line(first_line)
-        current_line = first_line
+        current_line = self.start_dialogue("Hi honey, seems that we're both free tonight, what would you like to do?")
 
         for _ in range(rounds):
             current_line = self.character2.take_turn(current_line)
