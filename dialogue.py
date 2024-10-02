@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import annotations
 import ollama
 from typing import List, Tuple
 
@@ -16,7 +17,7 @@ class Character:
     def speak_line(self, line: str):
         print(f"{' '*5}{self.name}:\n{line}\n")
 
-    def take_turn(self, dialogue_lines: List[tuple[Character, str]]) -> str:
+    def take_turn(self, dialogue_lines: List[Tuple['Character', str]]) -> str:
         messages = [{"role": "system", "content": SYSTEM_PROMPT_TEMPLATE.format(
             name=self.name, description=self.description
         )}]
