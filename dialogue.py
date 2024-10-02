@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import ollama
-from itertools import cycle
+from itertools import cycle, islice
 
 MODEL = "llama3.2:3b"
 SYSTEM_PROMPT_TEMPLATE = (
@@ -41,8 +41,7 @@ class Dialogue:
         while next(speaker_cycle) != starting_character:
             pass
 
-        for _ in range(rounds):
-            current_speaker = next(speaker_cycle)
+        for current_speaker in islice(speaker_cycle, rounds):
             reply = current_speaker.take_turn(self.lines)
             current_speaker.speak_line(reply)
             self.lines.append((current_speaker, reply))
