@@ -40,6 +40,9 @@ class Dialogue:
     def say_line(self, character: Character, line: str):
         character.speak_line(line)
         self.lines.append((character, line))
+        # Align the speaker_cycle with the current character
+        while next(self.speaker_cycle) != character:
+            pass
         self.current_speaker = next(self.speaker_cycle)
 
     def generate(self, rounds: int):
@@ -50,14 +53,13 @@ class Dialogue:
 
 if __name__ == "__main__":
     emma = Character("Emma", "a passionate and emotional artist, James's wife")
-    james = Character(
-        "James", "a logical and pragmatic software engineer, Emma's husband"
-    )
+    james = Character("James", "a logical and pragmatic software engineer, Emma's husband")
+    alex = Character("Alex", "Emma and James's witty and sarcastic friend")
 
-    print(f"Generating a dialogue between Emma and James...\n")
-    dialogue = Dialogue(emma, james)
-    dialogue.say_line(emma, "Hi honey, seems that we're both free tonight, what would you like to do?")
-    dialogue.generate(2)  # Generate 2 rounds
-    dialogue.say_line(emma, "Actually, I just remembered we have tickets for a concert tonight!")
-    dialogue.generate(2)  # Generate 2 more rounds
+    print(f"Generating a dialogue between Emma, James, and Alex...\n")
+    dialogue = Dialogue(emma, james, alex)
+    dialogue.say_line(emma, "Hi honey, seems that we're all free tonight, what would you like to do?")
+    dialogue.generate(3)  # Generate 3 rounds
+    dialogue.say_line(alex, "Actually, I just remembered we have tickets for a concert tonight!")
+    dialogue.generate(3)  # Generate 3 more rounds
     print("Dialogue generation complete.")
