@@ -28,28 +28,34 @@ def ollama_response(messages: list[dict[str, str]]) -> str:
     return ollama.chat(model=MODEL, messages=messages)["message"]["content"]  # type: ignore
 
 
-def generate_dialogue(rounds: int):
-    james = Character("James", "a logical and pragmatic software engineer, Emma's husband",)
-    emma = Character("Emma", "a passionate and emotional artist, James's wife")
+class Dialogue:
+    def __init__(self, character1: Character, character2: Character, rounds: int):
+        self.character1 = character1
+        self.character2 = character2
+        self.rounds = rounds
 
-    emma_first_line = "Hi honey, seems that we're both free tonight, what would you like to do?"
-    emma.speak_line(emma_first_line)
-    emma.add_message(emma_first_line, role="assistant")
-    james.add_message(emma_first_line, role="user")
+    def generate(self):
+        first_line = "Hi honey, seems that we're both free tonight, what would you like to do?"
+        self.character1.speak_line(first_line)
+        self.character1.add_message(first_line, role="assistant")
+        self.character2.add_message(first_line, role="user")
 
-    for _ in range(rounds):
-        reply_from_james = ollama_response(james.messages)
-        james.speak_line(reply_from_james)
-        james.add_message(reply_from_james, role="assistant")
-        emma.add_message(reply_from_james, role="user")
+        for _ in range(self.rounds):
+            self._generate_round(self.character2, self.character1)
+            self._generate_round(self.character1, self.character2)
 
-        reply_from_emma = ollama_response(emma.messages)
-        emma.speak_line(reply_from_emma)
-        emma.add_message(reply_from_emma, role="assistant")
-        james.add_message(reply_from_emma, role="user")
+    def _generate_round(self, speaker: Character, listener: Character):
+        reply = ollama_response(speaker.messages)
+        speaker.speak_line(reply)
+        speaker.add_message(reply, role="assistant")
+        listener.add_message(reply, role="user")
 
 
 if __name__ == "__main__":
+    james = Character("James", "a logical and pragmatic software engineer, Emma's husband")
+    emma = Character("Emma", "a passionate and emotional artist, James's wife")
+    
     print(f"Generating a {ROUNDS} rounds dialogue between Emma and James...\n")
-    generate_dialogue(ROUNDS)
+    dialogue = Dialogue(emma, james, ROUNDS)
+    dialogue.generate()
     print("Dialogue generation complete.")
