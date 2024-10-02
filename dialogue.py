@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 import ollama
+from typing import List, Tuple
 
 MODEL = "llama3.2:3b"
 SYSTEM_PROMPT_TEMPLATE = (
     "You are {name}, a screenplay character who's: {description}. "
     "Reply with only the words spoken, without any parentheticals."
 )
-ROUNDS = 5
-
-
-def ollama_response(messages: list[dict[str, str]]) -> str:
-    return ollama.chat(model=MODEL, messages=messages)["message"]["content"]  # type: ignore
 
 class Character:
     def __init__(self, name: str, description: str):
@@ -20,32 +16,37 @@ class Character:
     def speak_line(self, line: str):
         print(f"{' '*5}{self.name}:\n{line}\n")
 
+    def take_turn(self, dialogue_lines: List[Tuple[Character, str]]) -> str:
+        messages = [{"role": "system", "content": SYSTEM_PROMPT_TEMPLATE.format(
+            name=self.name, description=self.description
+        )}]
+        
+        for speaker, line in dialogue_lines:
+            role = "assistant" if speaker == self else "user"
+            messages.append({"role": role, "content": line})
+        
+        response = ollama.chat(model=MODEL, messages=messages)
+        return response["message"]["content"]
 
 class Dialogue:
     def __init__(self, character1: Character, character2: Character):
         self.character1 = character1
         self.character2 = character2
-        self.messages = []
+        self.lines: List[Tuple[Character, str]] = []
         self.current_speaker = self.character1
 
     def say_line(self, line: str):
         self.current_speaker.speak_line(line)
-        self.messages.append({"role": "assistant", "content": line})
+        self.lines.append((self.current_speaker, line))
         self.current_speaker = self.character2 if self.current_speaker == self.character1 else self.character1
 
     def generate(self, rounds: int):
         for _ in range(rounds):
-            system_message = SYSTEM_PROMPT_TEMPLATE.format(
-                name=self.current_speaker.name, 
-                description=self.current_speaker.description
-            )
-            messages = [{"role": "system", "content": system_message}] + self.messages
-            reply = ollama_response(messages)
+            reply = self.current_speaker.take_turn(self.lines)
             self.say_line(reply)
 
     def start_dialogue(self, first_line: str):
         self.say_line(first_line)
-
 
 if __name__ == "__main__":
     emma = Character("Emma", "a passionate and emotional artist, James's wife")
