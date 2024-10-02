@@ -17,11 +17,12 @@ class Character:
         )
         self.messages = [{"role": "system", "content": system_message}]
 
-    def add_message(self, message: str, role: str = "user"):
-        self.messages.append({"role": role, "content": message})
-
-    def speak_line(self, line):
-        print(f"{' '*5}{self.name}:\n{line}\n")
+    def take_turn(self, previous_line: str) -> str:
+        self.messages.append({"role": "user", "content": previous_line})
+        response = ollama_response(self.messages)
+        self.messages.append({"role": "assistant", "content": response})
+        print(f"{' '*5}{self.name}:\n{response}\n")
+        return response
 
 
 def ollama_response(messages: list[dict[str, str]]) -> str:
@@ -35,24 +36,17 @@ class Dialogue:
 
     def generate(self, rounds: int):
         first_line = "Hi honey, seems that we're both free tonight, what would you like to do?"
-        self.character1.speak_line(first_line)
-        self.character1.add_message(first_line, role="assistant")
-        self.character2.add_message(first_line, role="user")
+        print(f"{' '*5}{self.character1.name}:\n{first_line}\n")
+        current_line = first_line
 
         for _ in range(rounds):
-            self._generate_round(self.character2, self.character1)
-            self._generate_round(self.character1, self.character2)
-
-    def _generate_round(self, speaker: Character, listener: Character):
-        reply = ollama_response(speaker.messages)
-        speaker.speak_line(reply)
-        speaker.add_message(reply, role="assistant")
-        listener.add_message(reply, role="user")
+            current_line = self.character2.take_turn(current_line)
+            current_line = self.character1.take_turn(current_line)
 
 
 if __name__ == "__main__":
-    james = Character("James", "a logical and pragmatic software engineer, Emma's husband")
     emma = Character("Emma", "a passionate and emotional artist, James's wife")
+    james = Character("James", "a logical and pragmatic software engineer, Emma's husband")
     
     print(f"Generating a {ROUNDS} rounds dialogue between Emma and James...\n")
     dialogue = Dialogue(emma, james)
