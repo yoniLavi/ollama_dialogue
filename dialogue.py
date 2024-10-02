@@ -10,10 +10,13 @@ class Character:
 
     def __init__(self, name: str, description: str):
         self.name = name
-        system_prompt = self.SYSTEM_PROMPT_TEMPLATE.format(name=name, description=description)
+        self.description = description
         self.messages = [
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": self.generate_system_prompt()},
         ]
+
+    def generate_system_prompt(self) -> str:
+        return self.SYSTEM_PROMPT_TEMPLATE.format(name=self.name, description=self.description)
 
     def add_message(self, message: str, role: str = "user"):
         self.messages.append({"role": role, "content": message})
