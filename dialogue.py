@@ -34,21 +34,18 @@ class Dialogue:
     def __init__(self, *characters: Character):
         self.characters = list(characters)
         self.lines: list[tuple[Character, str]] = []
-        self.speaker_cycle = cycle(self.characters)
-        self.current_speaker = next(self.speaker_cycle)
 
-    def say_line(self, character: Character, line: str):
-        character.speak_line(line)
-        self.lines.append((character, line))
-        # Align the speaker_cycle with the current character
-        while next(self.speaker_cycle) != character:
+    def generate(self, rounds: int, starting_character: Character):
+        speaker_cycle = cycle(self.characters)
+        # Align the speaker_cycle with the starting character
+        while next(speaker_cycle) != starting_character:
             pass
-        self.current_speaker = next(self.speaker_cycle)
 
-    def generate(self, rounds: int):
         for _ in range(rounds):
-            reply = self.current_speaker.take_turn(self.lines)
-            self.say_line(self.current_speaker, reply)
+            current_speaker = next(speaker_cycle)
+            reply = current_speaker.take_turn(self.lines)
+            current_speaker.speak_line(reply)
+            self.lines.append((current_speaker, reply))
 
 
 if __name__ == "__main__":
@@ -58,8 +55,10 @@ if __name__ == "__main__":
 
     print(f"Generating a dialogue between Emma, James, and Alex...\n")
     dialogue = Dialogue(emma, james, alex)
-    dialogue.say_line(emma, "Hi honey, seems that we're all free tonight, what would you like to do?")
-    dialogue.generate(3)  # Generate 3 rounds
-    dialogue.say_line(alex, "Actually, I just remembered we have tickets for a concert tonight!")
-    dialogue.generate(3)  # Generate 3 more rounds
+    emma.speak_line("Hi honey, seems that we're all free tonight, what would you like to do?")
+    dialogue.lines.append((emma, "Hi honey, seems that we're all free tonight, what would you like to do?"))
+    dialogue.generate(3, james)  # Generate 3 rounds, starting with James
+    alex.speak_line("Actually, I just remembered we have tickets for a concert tonight!")
+    dialogue.lines.append((alex, "Actually, I just remembered we have tickets for a concert tonight!"))
+    dialogue.generate(3, emma)  # Generate 3 more rounds, starting with Emma
     print("Dialogue generation complete.")
