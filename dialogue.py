@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-import ollama
 from itertools import cycle, islice
+
+import ollama
 
 MODEL = "llama3.2:3b"
 SYSTEM_PROMPT_TEMPLATE = (
@@ -18,13 +19,11 @@ class Character:
         print(f"{' '*5}{self.name}:\n{line}\n")
 
     def take_turn(self, dialogue_lines: list[tuple["Character", str]]) -> str:
-        system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
-            name=self.name, description=self.description
-        )
+        system_prompt = SYSTEM_PROMPT_TEMPLATE.format(name=self.name, description=self.description)
         messages: list[ollama.Message] = [{"role": "system", "content": system_prompt}]
 
         for speaker, line in dialogue_lines:
-            role = "assistant" if speaker == self else "user"
+            role = "assistant" if speaker is self else "user"
             messages.append({"role": role, "content": line})
 
         reply = ollama.chat(MODEL, messages)["message"]["content"]
@@ -37,11 +36,14 @@ class Dialogue:
         self.characters = list(characters)
         self.lines: list[tuple[Character, str]] = []
 
-    def generate(self, rounds: int, starting_character: Character):
+    def add_line(self, character: Character, line: str):
+        character.speak_line(line)
+        self.lines.append((character, line))
+
+    def generate(self, rounds: int, starting_with: Character | None = None):
         speaker_cycle = cycle(self.characters)
-        # Align the speaker_cycle with the starting character
-        while next(speaker_cycle) != starting_character:
-            pass
+        while starting_with and next(speaker_cycle) != starting_with:
+            continue  # Align the speaker_cycle with the starting character
 
         for current_speaker in islice(speaker_cycle, rounds):
             reply = current_speaker.take_turn(self.lines)
@@ -55,10 +57,8 @@ if __name__ == "__main__":
 
     print(f"Generating a dialogue between Emma, James, and Alex...\n")
     dialogue = Dialogue(emma, james, alex)
-    emma.speak_line("Hi honey, seems that we're all free tonight, what would you like to do?")
-    dialogue.lines.append((emma, "Hi honey, seems that we're all free tonight, what would you like to do?"))
-    dialogue.generate(3, james)  # Generate 3 rounds, starting with James
-    alex.speak_line("Actually, I just remembered we have tickets for a concert tonight!")
-    dialogue.lines.append((alex, "Actually, I just remembered we have tickets for a concert tonight!"))
-    dialogue.generate(3, emma)  # Generate 3 more rounds, starting with Emma
+    dialogue.add_line(emma, "Seems that we're all free tonight, should we go out?")
+    dialogue.generate(rounds=3, starting_with=james)
+    dialogue.add_line(alex, "Actually, I just remembered we have tickets for a concert tonight!")
+    dialogue.generate(rounds=5)
     print("Dialogue generation complete.")
