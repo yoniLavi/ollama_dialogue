@@ -27,8 +27,6 @@ def generate_dialogue(model='llama3.1', rounds=5):
         messages.append({'role': 'system', 'content': 'You are Emma, a passionate and emotional artist. You speak poetically and dramatically. You are currently upset with your partner, James, for forgetting your anniversary.'})
         messages.append({'role': 'user', 'content': 'Respond to James\'s last statement.'})
 
-        time.sleep(1)  # To avoid overwhelming the API
-
 if __name__ == "__main__":
     print("Generating dialogue between Emma and James...")
     generate_dialogue()
