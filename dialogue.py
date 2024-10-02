@@ -27,7 +27,9 @@ class Character:
             role = "assistant" if speaker == self else "user"
             messages.append({"role": role, "content": line})
 
-        return ollama.chat(MODEL, messages)["message"]["content"]
+        reply = ollama.chat(MODEL, messages)["message"]["content"]
+        self.speak_line(reply)
+        return reply
 
 
 class Dialogue:
@@ -43,7 +45,6 @@ class Dialogue:
 
         for current_speaker in islice(speaker_cycle, rounds):
             reply = current_speaker.take_turn(self.lines)
-            current_speaker.speak_line(reply)
             self.lines.append((current_speaker, reply))
 
 
