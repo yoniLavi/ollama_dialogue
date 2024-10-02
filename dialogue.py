@@ -9,6 +9,9 @@ SYSTEM_PROMPT_TEMPLATE = (
 ROUNDS = 5
 
 
+def ollama_response(messages: list[dict[str, str]]) -> str:
+    return ollama.chat(model=MODEL, messages=messages)["message"]["content"]  # type: ignore
+
 class Character:
     def __init__(self, name: str, description: str):
         self.name = name
@@ -16,13 +19,6 @@ class Character:
             name=name, description=description
         )
         self.messages = [{"role": "system", "content": system_message}]
-
-    def take_turn(self, previous_line: str) -> str:
-        self.messages.append({"role": "user", "content": previous_line})
-        response = ollama_response(self.messages)
-        self.messages.append({"role": "assistant", "content": response})
-        self.speak_line(response)
-        return response
 
     def speak_line(self, line: str):
         print(f"{' '*5}{self.name}:\n{line}\n")
@@ -32,9 +28,11 @@ class Character:
         self.speak_line(line)
         return line
 
-
-def ollama_response(messages: list[dict[str, str]]) -> str:
-    return ollama.chat(model=MODEL, messages=messages)["message"]["content"]  # type: ignore
+    def take_turn(self, previous_line: str) -> str:
+        self.messages.append({"role": "user", "content": previous_line})
+        reply = ollama_response(self.messages)
+        self.add_and_speak_line(reply)
+        return reply
 
 
 class Dialogue:
@@ -56,7 +54,7 @@ class Dialogue:
 if __name__ == "__main__":
     emma = Character("Emma", "a passionate and emotional artist, James's wife")
     james = Character("James", "a logical and pragmatic software engineer, Emma's husband")
-    
+
     print(f"Generating a {ROUNDS} rounds dialogue between Emma and James...\n")
     dialogue = Dialogue(emma, james)
     dialogue.generate(ROUNDS)
