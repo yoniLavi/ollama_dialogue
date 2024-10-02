@@ -29,18 +29,17 @@ def ollama_response(messages: list[dict[str, str]]) -> str:
 
 
 class Dialogue:
-    def __init__(self, character1: Character, character2: Character, rounds: int):
+    def __init__(self, character1: Character, character2: Character):
         self.character1 = character1
         self.character2 = character2
-        self.rounds = rounds
 
-    def generate(self):
+    def generate(self, rounds: int):
         first_line = "Hi honey, seems that we're both free tonight, what would you like to do?"
         self.character1.speak_line(first_line)
         self.character1.add_message(first_line, role="assistant")
         self.character2.add_message(first_line, role="user")
 
-        for _ in range(self.rounds):
+        for _ in range(rounds):
             self._generate_round(self.character2, self.character1)
             self._generate_round(self.character1, self.character2)
 
@@ -56,6 +55,6 @@ if __name__ == "__main__":
     emma = Character("Emma", "a passionate and emotional artist, James's wife")
     
     print(f"Generating a {ROUNDS} rounds dialogue between Emma and James...\n")
-    dialogue = Dialogue(emma, james, ROUNDS)
-    dialogue.generate()
+    dialogue = Dialogue(emma, james)
+    dialogue.generate(ROUNDS)
     print("Dialogue generation complete.")
