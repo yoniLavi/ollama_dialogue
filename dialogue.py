@@ -34,19 +34,19 @@ def generate_dialogue(rounds: int):
 
     emma_first_line = "Hi honey, seems that we're both free tonight, what would you like to do?"
     emma.speak_line(emma_first_line)
-    emma.add_message(emma_first_line)
-    james.add_message(emma_first_line, role="assistant")
+    emma.add_message(emma_first_line, role="assistant")
+    james.add_message(emma_first_line, role="user")
 
     for _ in range(rounds):
         reply_from_james = ollama_response(james.messages)
         james.speak_line(reply_from_james)
-        james.add_message(reply_from_james)
-        emma.add_message(reply_from_james, role="assistant")
+        james.add_message(reply_from_james, role="assistant")
+        emma.add_message(reply_from_james, role="user")
 
         reply_from_emma = ollama_response(emma.messages)
         emma.speak_line(reply_from_emma)
-        emma.add_message(reply_from_emma)
-        james.add_message(reply_from_emma, role="assistant")
+        emma.add_message(reply_from_emma, role="assistant")
+        james.add_message(reply_from_emma, role="user")
 
 
 if __name__ == "__main__":
