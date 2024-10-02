@@ -5,43 +5,50 @@ MODEL = "llama3.2:3b"
 ROUNDS = 5
 
 
-def ollama_response(messages):
+class Character:
+    def __init__(self, name: str, system_prompt: str):
+        self.name = name
+        self.messages = [
+            {"role": "system", "content": system_prompt},
+        ]
+
+    def add_message(self, message: str, role: str = "user"):
+        self.messages.append({"role": role, "content": message})
+
+
+def ollama_response(messages: list[dict[str, str]]) -> str:
     return ollama.chat(model=MODEL, messages=messages)["message"]["content"]
 
 
-def print_character_line(character, line):
+def print_character_line(character: str, line: str):
     print(f"{' '*5}{character}:\n{line}\n")
 
 
 def generate_dialogue(
-    rounds, emma_first_line="James, how could you forget our anniversary?!"
+    rounds: int, emma_first_line: str = "James, how could you forget our anniversary?!"
 ):
-    emma_messages = [
-        {
-            "role": "system",
-            "content": "You are Emma, a screenplay character who's a passionate and emotional artist. Reply with only the words spoken, without any parentheticals.",
-        },
-        {"role": "user", "content": emma_first_line},
-    ]
-    print_character_line("Emma", emma_first_line)
+    emma = Character(
+        "Emma",
+        "You are Emma, a screenplay character who's a passionate and emotional artist. Reply with only the words spoken, without any parentheticals.",
+    )
+    james = Character(
+        "James",
+        "You are James, a screenplay character who's a logical and pragmatic software engineer. You speak calmly and rationally. You forgot your anniversary with Emma and are trying to explain yourself. Reply with only the words spoken, without any parentheticals.",
+    )
 
-    james_messages = [
-        {
-            "role": "system",
-            "content": "You are James, a screenplay character who's a logical and pragmatic software engineer. You speak calmly and rationally. You forgot your anniversary with Emma and are trying to explain yourself. Reply with only the words spoken, without any parentheticals.",
-        }
-    ]
+    emma.add_message(emma_first_line)
+    print_character_line(emma.name, emma_first_line)
 
     for _ in range(rounds):
-        reply_from_james = ollama_response(emma_messages)
-        james_messages.append({"role": "user", "content": reply_from_james})
-        emma_messages.append({"role": "assistant", "content": reply_from_james})
-        print_character_line("James", reply_from_james)
+        reply_from_james = ollama_response(emma.messages)
+        james.add_message(reply_from_james)
+        emma.add_message(reply_from_james, role="assistant")
+        print_character_line(james.name, reply_from_james)
 
-        reply_from_emma = ollama_response(james_messages)
-        emma_messages.append({"role": "user", "content": reply_from_emma})
-        james_messages.append({"role": "assistant", "content": reply_from_emma})
-        print_character_line("Emma", reply_from_emma)
+        reply_from_emma = ollama_response(james.messages)
+        emma.add_message(reply_from_emma)
+        james.add_message(reply_from_emma, role="assistant")
+        print_character_line(emma.name, reply_from_emma)
 
 
 if __name__ == "__main__":
