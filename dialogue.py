@@ -21,8 +21,11 @@ class Character:
         self.messages.append({"role": "user", "content": previous_line})
         response = ollama_response(self.messages)
         self.messages.append({"role": "assistant", "content": response})
-        print(f"{' '*5}{self.name}:\n{response}\n")
+        self.speak_line(response)
         return response
+
+    def speak_line(self, line: str):
+        print(f"{' '*5}{self.name}:\n{line}\n")
 
 
 def ollama_response(messages: list[dict[str, str]]) -> str:
@@ -36,7 +39,7 @@ class Dialogue:
 
     def generate(self, rounds: int):
         first_line = "Hi honey, seems that we're both free tonight, what would you like to do?"
-        print(f"{' '*5}{self.character1.name}:\n{first_line}\n")
+        self.character1.speak_line(first_line)
         current_line = first_line
 
         for _ in range(rounds):
