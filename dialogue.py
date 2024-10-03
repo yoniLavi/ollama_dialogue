@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from itertools import cycle, islice
+from typing import List, Tuple
 
 import ollama
 
@@ -18,7 +19,7 @@ class Character:
     def speak_line(self, line: str):
         print(f"{' '*5}{self.name}:\n{line}\n")
 
-    def take_turn(self, dialogue_lines: "Dialogue") -> str:
+    def take_turn(self, dialogue_lines: DialogueLines) -> str:
         system_prompt = SYSTEM_PROMPT_TEMPLATE.format(name=self.name, description=self.description)
         messages: list[ollama.Message] = [{"role": "system", "content": system_prompt}]
 
@@ -31,13 +32,16 @@ class Character:
         return reply
 
 
-class Dialogue(list[tuple[Character, str]]):
+DialogueLines = List[Tuple[Character, str]]
+
+class Dialogue:
     def __init__(self, *characters: Character):
         self.characters = list(characters)  # TODO: Allow characters to move in and out of the dialogue
+        self.lines: DialogueLines = []
 
     def add_line(self, character: Character, line: str):
         character.speak_line(line)
-        self.append((character, line))
+        self.lines.append((character, line))
 
     def generate(self, rounds: int, starting_with: Character | None = None):
         speaker_cycle = cycle(self.characters)
@@ -45,7 +49,7 @@ class Dialogue(list[tuple[Character, str]]):
             continue  # Align the speaker_cycle with the starting character
 
         for current_speaker in islice(speaker_cycle, rounds):
-            self.append((current_speaker, current_speaker.take_turn(self)))
+            self.lines.append((current_speaker, current_speaker.take_turn(self.lines)))
 
 
 if __name__ == "__main__":
