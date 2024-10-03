@@ -18,7 +18,7 @@ class Character:
     def speak_line(self, line: str):
         print(f"{' '*5}{self.name}:\n{line}\n")
 
-    def take_turn(self, dialogue_lines: list[tuple["Character", str]]) -> str:
+    def take_turn(self, dialogue_lines: "Dialogue") -> str:
         system_prompt = SYSTEM_PROMPT_TEMPLATE.format(name=self.name, description=self.description)
         messages: list[ollama.Message] = [{"role": "system", "content": system_prompt}]
 
@@ -31,14 +31,13 @@ class Character:
         return reply
 
 
-class Dialogue:
+class Dialogue(list[tuple[Character, str]]):
     def __init__(self, *characters: Character):
-        self.characters = list(characters)
-        self.lines: list[tuple[Character, str]] = []
+        self.characters = list(characters)  # TODO: Allow characters to move in and out of the dialogue
 
     def add_line(self, character: Character, line: str):
         character.speak_line(line)
-        self.lines.append((character, line))
+        self.append((character, line))
 
     def generate(self, rounds: int, starting_with: Character | None = None):
         speaker_cycle = cycle(self.characters)
@@ -46,8 +45,7 @@ class Dialogue:
             continue  # Align the speaker_cycle with the starting character
 
         for current_speaker in islice(speaker_cycle, rounds):
-            reply = current_speaker.take_turn(self.lines)
-            self.lines.append((current_speaker, reply))
+            self.append((current_speaker, current_speaker.take_turn(self)))
 
 
 if __name__ == "__main__":
@@ -60,5 +58,5 @@ if __name__ == "__main__":
     dialogue.add_line(emma, "Seems that we're all free tonight, should we go out?")
     dialogue.generate(rounds=3, starting_with=james)
     dialogue.add_line(alex, "Actually, I just remembered we have tickets for a concert tonight!")
-    dialogue.generate(rounds=5)
+    dialogue.generate(rounds=10)
     print("Dialogue generation complete.")
