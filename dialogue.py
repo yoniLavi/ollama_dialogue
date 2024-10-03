@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from itertools import cycle, islice
-from typing import List, Tuple
 
 import ollama
 
@@ -10,6 +9,8 @@ SYSTEM_PROMPT_TEMPLATE = (
     "Reply with only the words spoken, without any parentheticals."
 )
 
+
+DialogueLines = list[tuple['Character', str]]
 
 class Character:
     def __init__(self, name: str, description: str):
@@ -32,8 +33,6 @@ class Character:
         return reply
 
 
-DialogueLines = List[Tuple[Character, str]]
-
 class Dialogue:
     def __init__(self, *characters: Character):
         self.characters = list(characters)  # TODO: Allow characters to move in and out of the dialogue
@@ -49,7 +48,8 @@ class Dialogue:
             continue  # Align the speaker_cycle with the starting character
 
         for current_speaker in islice(speaker_cycle, rounds):
-            self.lines.append((current_speaker, current_speaker.take_turn(self.lines)))
+            reply = current_speaker.take_turn(self.lines)
+            self.lines.append((current_speaker, reply))
 
 
 if __name__ == "__main__":
